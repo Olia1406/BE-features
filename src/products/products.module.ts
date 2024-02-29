@@ -1,3 +1,4 @@
+import { ProductDbModule } from 'src/schemas/productdb.module';
 import { ProductsController } from './products.controller';
 /*
 https://docs.nestjs.com/modules
@@ -6,7 +7,7 @@ https://docs.nestjs.com/modules
 import { Module } from '@nestjs/common';
 
 @Module({
-    imports: [],
+    imports: [ProductDbModule],
     controllers: [
         ProductsController,],
     providers: [],

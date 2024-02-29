@@ -2,79 +2,52 @@
 https://docs.nestjs.com/controllers#controllers
 */
 
-import { Body, Controller, Delete, Get, HttpStatus, Param, Post, Req } from '@nestjs/common';
+import { Body, Controller, Delete, Get, HttpStatus, Param, Post, Query, Req, Request, UploadedFile, UseInterceptors } from '@nestjs/common';
+import { FileInterceptor } from '@nestjs/platform-express';
 import { ApiResponse } from '@nestjs/swagger';
+import { diskStorage } from 'multer';
 import { CreateProductDto, DeleteProductDto, Product, ProductDto } from 'src/dtos/ProductDto';
+import { ProductDbService } from 'src/schemas/product.service';
 
 @Controller('api/products')
 export class ProductsController {
-    products: Product[] = [
-        {
-            id: 'xx1',
-            name: 'Phone1',
-            description: 'Super smartphone',
-            image: null,
-            price: 200,
-            isLiked: false
-        },
-        {
-            id: 'xx2',
-            name: 'Phone2',
-            description: 'Fantastic smartphone',
-            image: null,
-            price: 200,
-            isLiked: true
-        },
-        {
-            id: 'xx3',
-            name: 'Phone3',
-            description: 'Good smartphone',
-            image: null,
-            price: 200,
-            isLiked: false
-        },
-        {
-            id: 'xx4',
-            name: 'Phone4',
-            description: 'Fine smartphone',
-            image: null,
-            price: 200,
-            isLiked: false
-        }
-    ]
+
+    constructor(private productDbServ: ProductDbService) {}
 
     @Get()
     @ApiResponse({ status: HttpStatus.OK, type: Array<ProductDto> })
-    getAll(): ProductDto[] {
-        return this.products;
+    async getAll(@Query() query: any): Promise<ProductDto[]> {
+        const product = await this.productDbServ.getList(query)
+        return product as any
     }
 
     @Get(':id')
     @ApiResponse({ status: HttpStatus.OK, type: CreateProductDto })
-    getDetails(@Param('id') id: string): Product {
-        const found = this.products.find(product => product.id === id);
-        return found;
+    async getDetails(@Param('id') id: string): Promise<any> {
+        return await this.productDbServ.getById(id)
     }
 
     @Post('create')
+    @UseInterceptors(FileInterceptor('image', {
+        storage: diskStorage({
+            destination: './fe_src/static/images',
+            filename: function (req, image, callback) {
+                callback(null, image.originalname)
+            }
+        }),
+    }))
     @ApiResponse({ status: HttpStatus.OK })
-    add(@Body() product: CreateProductDto): ProductDto {
-        const id = Math.random().toString();
+    async add(@Body() product: CreateProductDto, @UploadedFile() image: Express.Multer.File): Promise<any> {
         const prod: Product = {
-            id,
-            ...product
+            ...product,
+            image: `static/images/${image.originalname}`
         }
-        this.products.push(prod);
-        return prod;
+        return await this.productDbServ.create(prod)
     }
 
     @Delete('delete/:id')
     @ApiResponse({ status: HttpStatus.OK, type: DeleteProductDto })
-    delete(@Param('id') id: string): DeleteProductDto {
-        this.products = this.products.filter(product => product.id !== id);
-        return {
-            message: `Product with a #${id} was removed`,
-            id
-        };
+    async delete(@Param('id') id: string): Promise<any> {
+        return await this.productDbServ.delete(id);
     }
 }

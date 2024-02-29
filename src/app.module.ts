@@ -1,3 +1,5 @@
+import { ProductDbService } from './schemas/product.service';
+import { ProductDbModule } from './schemas/productdb.module';
 import { ProductsModule } from './products/products.module';
 import { Module } from '@nestjs/common';
 import { AppController } from './app.controller';
@@ -9,6 +11,7 @@ import { join } from 'path';
 
 @Module({
   imports: [
+    ProductDbModule,
     ProductsModule, MongooseModule.forRoot('mongodb://localhost:27017/products'),
     ServeStaticModule.forRoot({
       rootPath: join(__dirname, '..', 'fe_src'),
@@ -16,6 +19,7 @@ import { join } from 'path';
     }),
   ],
   controllers: [AppController, UsersController],
-  providers: [AppService],
+  providers: [
+    ProductDbService, AppService],
 })
 export class AppModule { }
