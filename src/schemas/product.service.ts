@@ -17,7 +17,7 @@ export class ProductDbService {
     }
 
     async getById(prodId: string): Promise<ProductDocument> {
-        return this.productModel.findById(prodId).exec()
+        return this.productModel.findById(prodId as any);
     }
 
     async create(product: ProductS) {

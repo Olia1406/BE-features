@@ -20,7 +20,7 @@ export class ProductsController {
         const product = await this.productDbServ.getList(query)
         return product as any
     }
-
+    
     @Get(':id')
     @ApiResponse({ status: HttpStatus.OK, type: CreateProductDto })
     async getDetails(@Param('id') id: string): Promise<any> {
