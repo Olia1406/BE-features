@@ -7,7 +7,7 @@ import { FileInterceptor } from '@nestjs/platform-express';
 import { ApiResponse } from '@nestjs/swagger';
 import { diskStorage } from 'multer';
 import { CreateProductDto, DeleteProductDto, Product, ProductDto } from 'src/dtos/ProductDto';
-import { ProductDbService } from 'src/schemas/product.service';
+import { ProductDbService } from 'src/schemas/product/product.service';
 
 @Controller('api/products')
 export class ProductsController {
@@ -16,8 +16,9 @@ export class ProductsController {
 
     @Get()
     @ApiResponse({ status: HttpStatus.OK, type: Array<ProductDto> })
-    async getAll(@Query() query: any): Promise<ProductDto[]> {
+    async getAll(@Query() query: any, @Req() res: any): Promise<ProductDto[]> {
         const product = await this.productDbServ.getList(query)
+        console.log(res.cookies)
         return product as any
     }
     
