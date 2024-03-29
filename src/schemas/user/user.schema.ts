@@ -18,6 +18,10 @@ export class UserS {
         minlength: 8,
         maxlength: 50
     }) password: string;
+    @Prop({
+        type: String,
+        required: true,
+    }) role?: 'admin' | 'superadmin' | 'user';
 }
 
 export type UserDocument = UserS & Document;

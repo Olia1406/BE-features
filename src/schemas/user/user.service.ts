@@ -19,4 +19,8 @@ export class UserDbService {
         return this.userModel.findOne({ email: user.email, password: user.password })
     }
 
+    async getById(userId: string): Promise<UserDocument> {
+        return this.userModel.findById(userId as any);
+    }
+
 }
