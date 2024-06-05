@@ -1,4 +1,15 @@
-import { Body, Controller, HttpException, HttpStatus, Post, Res, Response, Get, Req } from '@nestjs/common';
+import {
+  Body,
+  Controller,
+  HttpException,
+  HttpStatus,
+  Post,
+  Res,
+  Response,
+  Get,
+  Req,
+  Session,
+} from '@nestjs/common';
 import { ApiResponse } from '@nestjs/swagger';
 import { CreateUserDto } from 'src/dtos/UserDto';
 import { encodeStr } from 'src/helpers/encodeStr';
@@ -19,42 +30,58 @@ export class UsersController {
 
   @Post('login')
   @ApiResponse({ status: HttpStatus.OK })
-  async login(@Body() user: CreateUserDto, @Res({passthrough: true}) response: Response): Promise<any> {
-    console.log('res', (response as any).cookie)
+  async login(
+    @Session() session: Record<string, any>,
+    @Body() user: CreateUserDto,
+    @Res({ passthrough: true }) response: Response,
+  ): Promise<any> {
+    console.log('res', (response as any).cookie);
     const userModel: CreateUserDto = {
       ...user,
       password: encodeStr(user.password),
     };
 
     const logged = await this.userDbServ.login(userModel);
-    // console.log(logged)
-    // res.cookies.'token',logged._id);
-    // response.cookies['token'] = logged._id;
-    // const frontendDomain = this.configService.get<string>('FRONTEND_DOMAIN');
-    // const jwtToken = await this.jwtService.signAsync({id: user.user_id});
-    if(logged) {
-      (response as any).cookie('jwt', logged._id, {});
+
+    if (logged) {
+      // (response as any).cookie('jwt', logged._id, {});
+      session.user = logged;
       return 1;
     } else {
-      throw new HttpException('Incorrect password or email.', HttpStatus.BAD_GATEWAY)
+      throw new HttpException(
+        'Incorrect password or email.',
+        HttpStatus.BAD_GATEWAY,
+      );
     }
   }
 
-  
   @Get('user-info')
   @ApiResponse({ status: HttpStatus.OK, type: Array<any> })
-  async getInfo(@Req() req: any): Promise<any> {
-
-    console.log(req.cookies);
+  async getInfo(
+    @Session() session: Record<string, any>,
+    @Req() req: any,
+  ): Promise<any> {
     console.log(req.cookies['jwt']);
 
-    const user = await this.userDbServ.getById(req.cookies['jwt'])
-    console.log('user', user)
-
-    if(req.cookies['jwt']) {
-        return user;
+    // if (req.cookies['jwt']) {
+    if (session.user) {
+      // const user = await this.userDbServ.getById(req.cookies['jwt']);
+      const user = await this.userDbServ.getById(session.user._id);
+      return user;
     }
-    throw new HttpException('Unauthorized', HttpStatus.UNAUTHORIZED)
+    throw new HttpException('Unauthorized', HttpStatus.UNAUTHORIZED);
   }
-  
+
+  @Post('logout')
+  @ApiResponse({ status: HttpStatus.OK })
+  async logout(
+    @Session() session: Record<string, any>,
+    @Body() user: CreateUserDto,
+    @Res({ passthrough: true }) response: Response,
+  ): Promise<any> {
+    console.log('res', (response as any).cookie);
+
+    session.user = null;
+    return {};
+  }
 }
