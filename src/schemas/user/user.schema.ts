@@ -20,7 +20,8 @@ export class UserS {
     }) password: string;
     @Prop({
         type: String,
-        required: true,
+        required: false,
+        default: 'user',
     }) role?: 'admin' | 'superadmin' | 'user';
 }
 
